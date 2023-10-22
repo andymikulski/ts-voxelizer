@@ -8,6 +8,7 @@
     "declaration": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
+    "strictNullChecks": true,
     "lib": ["DOM", "ES2015", "ScriptHost"]
   },
   "include": [

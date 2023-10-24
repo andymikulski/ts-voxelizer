@@ -1,24 +1,11 @@
 import { Ray, distance, intersectRayRectangle } from "./Ray";
-import { Point, Rect, intersects } from "./Rect";
+import { Rect, intersects } from "./Rect";
 import { Vector2 } from "./Vector2";
+import { inflateRect } from "./inflateRect";
 
 const MAX_ITEMS = 4; // Adjust this as needed.
 const MAX_LEVELS = 5; // Adjust this as needed.
 
-
-function computeDistance(rayOrigin: Point, rect: Rect): number {
-  // Calculate the center of the rectangle
-  const rectCenter: Point = {
-    x: rect.x + rect.width / 2,
-    y: rect.y + rect.height / 2,
-  };
-
-  // Calculate the distance between ray origin and rectangle center
-  const dx = rayOrigin.x - rectCenter.x;
-  const dy = rayOrigin.y - rectCenter.y;
-
-  return Math.sqrt(dx * dx + dy * dy);
-}
 
 
 export default class QuadTree {
@@ -67,35 +54,35 @@ export default class QuadTree {
   }
 
   // Determine which node the Rect belongs to.
-  private getIndex(rect: Rect): number {
-    let index = -1;
-    const verticalMidpoint = this.bounds.x + this.bounds.width / 2;
-    const horizontalMidpoint = this.bounds.y + this.bounds.height / 2;
+  // private getPointIndex(rect: Vector2): number {
+  //   let index = -1;
+  //   const verticalMidpoint = this.bounds.x + this.bounds.width / 2;
+  //   const horizontalMidpoint = this.bounds.y + this.bounds.height / 2;
 
-    // Rect can fit completely within the top quadrants.
-    const topQuadrant = (rect.y < horizontalMidpoint && rect.y + rect.height < horizontalMidpoint);
-    // Rect can fit completely within the bottom quadrants.
-    const bottomQuadrant = rect.y > horizontalMidpoint;
+  //   // Rect can fit completely within the top quadrants.
+  //   const topQuadrant = (rect.y < horizontalMidpoint && rect.y + rect.height < horizontalMidpoint);
+  //   // Rect can fit completely within the bottom quadrants.
+  //   const bottomQuadrant = rect.y > horizontalMidpoint;
 
-    // Rect can fit completely within the left quadrants.
-    if (rect.x < verticalMidpoint && rect.x + rect.width < verticalMidpoint) {
-      if (topQuadrant) {
-        index = 1;
-      } else if (bottomQuadrant) {
-        index = 2;
-      }
-    }
-    // Rect can fit completely within the right quadrants.
-    else if (rect.x > verticalMidpoint) {
-      if (topQuadrant) {
-        index = 0;
-      } else if (bottomQuadrant) {
-        index = 3;
-      }
-    }
+  //   // Rect can fit completely within the left quadrants.
+  //   if (rect.x < verticalMidpoint && rect.x + rect.width < verticalMidpoint) {
+  //     if (topQuadrant) {
+  //       index = 1;
+  //     } else if (bottomQuadrant) {
+  //       index = 2;
+  //     }
+  //   }
+  //   // Rect can fit completely within the right quadrants.
+  //   else if (rect.x > verticalMidpoint) {
+  //     if (topQuadrant) {
+  //       index = 0;
+  //     } else if (bottomQuadrant) {
+  //       index = 3;
+  //     }
+  //   }
 
-    return index;
-  }
+  //   return index;
+  // }
 
 
   public insert(rect: Rect): void {
@@ -121,34 +108,34 @@ export default class QuadTree {
     }
   }
 
-  public insertPoint(rect: Rect): void {
-    if (this.nodes[0]) {
-      const index = this.getIndex(rect);
+  // public insertPoint(rect: Rect): void {
+  //   if (this.nodes[0]) {
+  //     const index = this.getPointIndex(rect);
 
-      if (index !== -1) {
-        this.nodes[index].insert(rect);
-        return;
-      }
-    }
+  //     if (index !== -1) {
+  //       this.nodes[index].insert(rect);
+  //       return;
+  //     }
+  //   }
 
-    this.objects.push(rect);
+  //   this.objects.push(rect);
 
-    if (this.objects.length > MAX_ITEMS && this.level < MAX_LEVELS) {
-      if (!this.nodes[0]) {
-        this.split();
-      }
+  //   if (this.objects.length > MAX_ITEMS && this.level < MAX_LEVELS) {
+  //     if (!this.nodes[0]) {
+  //       this.split();
+  //     }
 
-      let i = 0;
-      while (i < this.objects.length) {
-        const index = this.getIndex(this.objects[i]);
-        if (index !== -1) {
-          this.nodes[index].insert(this.objects.splice(i, 1)[0]);
-        } else {
-          i++;
-        }
-      }
-    }
-  }
+  //     let i = 0;
+  //     while (i < this.objects.length) {
+  //       const index = this.getIndex(this.objects[i]);
+  //       if (index !== -1) {
+  //         this.nodes[index].insert(this.objects.splice(i, 1)[0]);
+  //       } else {
+  //         i++;
+  //       }
+  //     }
+  //   }
+  // }
 
   public query(rangeRect: Rect): Rect[] {
     const itemsInRange: Rect[] = [];
@@ -207,37 +194,7 @@ export default class QuadTree {
     return false;
   }
 
-  // public raycast(ray: Ray): Rect | null {
-  //   // If the ray doesn't intersect the quadtree's bounds, return null.
-  //   if (!rayAABBIntersection(ray, this.bounds)) {
-  //     return null;
-  //   }
-
-  //   // Check objects in this QuadTree node.
-  //   for (const rect of this.objects) {
-  //     if (rayAABBIntersection(ray, rect)) {
-  //       return rect;
-  //     }
-  //   }
-
-  //   // If this is a leaf node, return null.
-  //   if (!this.nodes[0]) {
-  //     return null;
-  //   }
-
-  //   // Otherwise, check the child nodes.
-  //   for (const node of this.nodes) {
-  //     const intersectedRect = node.raycast(ray);
-  //     if (intersectedRect) {
-  //       return intersectedRect;
-  //     }
-  //   }
-
-  //   // If ray doesn't intersect any rectangle in this QuadTree, return null.
-  //   return null;
-  // }
-
-  public raycast(ray: Ray, maxDistance:number = Infinity): { point: Vector2, hit: Rect } | null {
+  public raycast(ray: Ray, maxDistance: number = Infinity): { point: Vector2, hit: Rect } | null {
     // If the ray doesn't intersect the quadtree's bounds, return null.
     if (!intersectRayRectangle(ray, this.bounds)) {
       return null;
@@ -253,7 +210,7 @@ export default class QuadTree {
         const intersectedRect = node.raycast(ray);
         if (intersectedRect) {
           const d = distance(ray.origin, intersectedRect.point);
-          if (d >= maxDistance){
+          if (d >= maxDistance) {
             continue;
           }
           if (d < minDistance) {
@@ -265,12 +222,14 @@ export default class QuadTree {
       }
     }
 
+    const inflation = 0.25;
+
     // Check objects in this QuadTree node.
     for (const rect of this.objects) {
-      const info = intersectRayRectangle(ray, rect);
+      const info = intersectRayRectangle(ray, inflateRect(rect, inflation));
       if (info) {
         const d = distance(ray.origin, info);
-        if (d >= maxDistance){
+        if (d >= maxDistance) {
           continue;
         }
         if (d < minDistance) {
@@ -283,7 +242,6 @@ export default class QuadTree {
 
     return closestRect ? { point: closestHit!, hit: closestRect } : null;
   }
-
 
   public draw(context: CanvasRenderingContext2D, cellSize: number): void {
     // Draw the current bounds.
@@ -304,3 +262,4 @@ export default class QuadTree {
     }
   }
 }
+

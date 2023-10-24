@@ -23,6 +23,10 @@ export default class ObstacleManager {
     return this.obstacles.raycast(ray, maxDistance);
   }
 
+  antiRaycast(ray: Ray, maxDistance: number) {
+    return this.obstacles.antiRaycast(ray, maxDistance);
+  }
+
   getObstacles(area: Rect): Rect[] {
     return this.obstacles.query(area);
   }
@@ -35,3 +39,4 @@ export default class ObstacleManager {
     this.obstacles.draw(ctx, cellSize);
   }
 }
+

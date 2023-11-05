@@ -3,7 +3,7 @@ import { Ray } from "./Ray";
 import { Rect } from "./Rect";
 
 export default class ObstacleManager {
-  private obstacles: QuadTree;
+  public obstacles: QuadTree;
 
   constructor(gridWidth: number, gridHeight: number) {
     this.obstacles = new QuadTree(0, { x: 0, y: 0, width: gridWidth, height: gridHeight });
@@ -23,10 +23,6 @@ export default class ObstacleManager {
     return this.obstacles.raycast(ray, maxDistance);
   }
 
-  antiRaycast(ray: Ray, maxDistance: number) {
-    return this.obstacles.antiRaycast(ray, maxDistance);
-  }
-
   getObstacles(area: Rect): Rect[] {
     return this.obstacles.query(area);
   }
@@ -35,8 +31,5 @@ export default class ObstacleManager {
     return this.obstacles.getAllObjects();
   }
 
-  draw(ctx: CanvasRenderingContext2D, cellSize: number) {
-    this.obstacles.draw(ctx, cellSize);
-  }
 }
 

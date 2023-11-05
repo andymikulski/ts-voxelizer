@@ -49,14 +49,36 @@ export type Ray = {
   direction: Vector2;
 };
 
-
+const sides = [
+  { x1: 0, y1: 0, x2: 0, y2: 0 },
+  { x1: 0, y1: 0, x2: 0, y2: 0 },
+  { x1: 0, y1: 0, x2: 0, y2: 0 },
+  { x1: 0, y1: 0, x2: 0, y2: 0 },
+];
 export function intersectRayRectangle(ray: Ray, rect: Rect): Vector2 | null {
-  const sides = [
-    { x1: rect.x, y1: rect.y, x2: rect.x + rect.width, y2: rect.y }, // top side
-    { x1: rect.x, y1: rect.y + rect.height, x2: rect.x + rect.width, y2: rect.y + rect.height }, // bottom side
-    { x1: rect.x, y1: rect.y, x2: rect.x, y2: rect.y + rect.height }, // left side
-    { x1: rect.x + rect.width, y1: rect.y, x2: rect.x + rect.width, y2: rect.y + rect.height }  // right side
-  ];
+  sides[0].x1 = rect.x;
+  sides[0].y1 = rect.y;
+  sides[0].x2 = rect.x + rect.width;
+  sides[0].y2 = rect.y;
+  // top side
+
+  sides[1].x1 = rect.x;
+  sides[1].y1 = rect.y + rect.height;
+  sides[1].x2 = rect.x + rect.width;
+  sides[1].y2 = rect.y + rect.height;
+  // bottom side
+
+  sides[2].x1 = rect.x;
+  sides[2].y1 = rect.y;
+  sides[2].x2 = rect.x;
+  sides[2].y2 = rect.y + rect.height;
+  // left side
+
+  sides[3].x1 = rect.x + rect.width;
+  sides[3].y1 = rect.y;
+  sides[3].x2 = rect.x + rect.width;
+  sides[3].y2 = rect.y + rect.height;
+  // right side
 
   let dist = Infinity;
   let closest = null;
@@ -74,12 +96,15 @@ export function intersectRayRectangle(ray: Ray, rect: Rect): Vector2 | null {
   return closest;
 }
 
+let det;
+let ua;
+let ub;
 function intersectRaySegment(ray: Ray, segment: Segment2D): Vector2 | null {
-  const det = (ray.direction.x * (segment.y2 - segment.y1)) - (ray.direction.y * (segment.x2 - segment.x1));
+  det = (ray.direction.x * (segment.y2 - segment.y1)) - (ray.direction.y * (segment.x2 - segment.x1));
   if (det === 0) return null; // lines are parallel
 
-  const ua = ((segment.x2 - segment.x1) * (ray.origin.y - segment.y1) - (segment.y2 - segment.y1) * (ray.origin.x - segment.x1)) / (det + EPS);
-  const ub = ((ray.direction.x) * (ray.origin.y - segment.y1) - (ray.direction.y) * (ray.origin.x - segment.x1)) / (det + EPS);
+  ua = ((segment.x2 - segment.x1) * (ray.origin.y - segment.y1) - (segment.y2 - segment.y1) * (ray.origin.x - segment.x1)) / (det + EPS);
+  ub = ((ray.direction.x) * (ray.origin.y - segment.y1) - (ray.direction.y) * (ray.origin.x - segment.x1)) / (det + EPS);
 
   if (ua >= 0 && ub >= 0 && ub <= 1) {
     return {

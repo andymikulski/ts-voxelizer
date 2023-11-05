@@ -1,14 +1,14 @@
-import { Ray, distance, intersectRayRectangle } from "./Ray";
+import { EPS, Ray, distance, intersectRayRectangle } from "./Ray";
 import { Rect, intersects } from "./Rect";
 import { Vector2 } from "./Vector2";
 import { inflateRect } from "./inflateRect";
 
-const MAX_ITEMS = 4; // Adjust this as needed.
-const MAX_LEVELS = 5; // Adjust this as needed.
-
 
 
 export default class QuadTree {
+  private MAX_ITEMS = 8; // Adjust this as needed.
+  private MAX_LEVEL = 5;
+
   private level: number;
   private bounds: Rect;
   private objects: Rect[] = [];
@@ -19,18 +19,18 @@ export default class QuadTree {
     this.bounds = bounds;
   }
 
-  public getAllObjects() {
+  public getAllObjects = () => {
     const output: Rect[] = [];
     Array.prototype.push.apply(output, this.objects);
 
-    this.nodes.forEach(x => {
+    this.nodes.forEach((x) => {
       Array.prototype.push.apply(output, x.getAllObjects());
     });
     return output;
   }
 
   // Clear the quadtree.
-  public clear(): void {
+  public clear = (): void => {
     this.objects = [];
     for (const node of this.nodes) {
       if (node) {
@@ -41,49 +41,50 @@ export default class QuadTree {
   }
 
   // Split the node into 4 subnodes.
-  private split(): void {
+  private split = (): void => {
+    if (this.level >= this.MAX_LEVEL) {
+      return;
+    }
+
     const subWidth = this.bounds.width / 2;
     const subHeight = this.bounds.height / 2;
     const x = this.bounds.x;
     const y = this.bounds.y;
 
-    this.nodes[0] = new QuadTree(this.level + 1, { x: x + subWidth, y: y, width: subWidth, height: subHeight });
-    this.nodes[1] = new QuadTree(this.level + 1, { x: x, y: y, width: subWidth, height: subHeight });
-    this.nodes[2] = new QuadTree(this.level + 1, { x: x, y: y + subHeight, width: subWidth, height: subHeight });
-    this.nodes[3] = new QuadTree(this.level + 1, { x: x + subWidth, y: y + subHeight, width: subWidth, height: subHeight });
+    this.nodes[0] = new QuadTree(this.level + 1, {
+      x: x + subWidth,
+      y: y,
+      width: subWidth,
+      height: subHeight,
+    });
+    this.nodes[1] = new QuadTree(this.level + 1, {
+      x: x,
+      y: y,
+      width: subWidth,
+      height: subHeight,
+    });
+    this.nodes[2] = new QuadTree(this.level + 1, {
+      x: x,
+      y: y + subHeight,
+      width: subWidth,
+      height: subHeight,
+    });
+    this.nodes[3] = new QuadTree(this.level + 1, {
+      x: x + subWidth,
+      y: y + subHeight,
+      width: subWidth,
+      height: subHeight,
+    });
+
+    // re-insert the objects into the split nodes
+    for (const obj of this.objects) {
+      for (const node of this.nodes) {
+        node.insert(obj);
+      }
+    }
+
+    this.objects = [];
   }
-
-  // Determine which node the Rect belongs to.
-  // private getPointIndex(rect: Vector2): number {
-  //   let index = -1;
-  //   const verticalMidpoint = this.bounds.x + this.bounds.width / 2;
-  //   const horizontalMidpoint = this.bounds.y + this.bounds.height / 2;
-
-  //   // Rect can fit completely within the top quadrants.
-  //   const topQuadrant = (rect.y < horizontalMidpoint && rect.y + rect.height < horizontalMidpoint);
-  //   // Rect can fit completely within the bottom quadrants.
-  //   const bottomQuadrant = rect.y > horizontalMidpoint;
-
-  //   // Rect can fit completely within the left quadrants.
-  //   if (rect.x < verticalMidpoint && rect.x + rect.width < verticalMidpoint) {
-  //     if (topQuadrant) {
-  //       index = 1;
-  //     } else if (bottomQuadrant) {
-  //       index = 2;
-  //     }
-  //   }
-  //   // Rect can fit completely within the right quadrants.
-  //   else if (rect.x > verticalMidpoint) {
-  //     if (topQuadrant) {
-  //       index = 0;
-  //     } else if (bottomQuadrant) {
-  //       index = 3;
-  //     }
-  //   }
-
-  //   return index;
-  // }
-
 
   public insert(rect: Rect): void {
     // If the rect doesn't belong in this quadrant of the QuadTree, return.
@@ -91,51 +92,23 @@ export default class QuadTree {
       return;
     }
 
-    // If below the capacity and not subdivided yet, insert into this QuadTree node.
-    if (this.objects.length < MAX_ITEMS && !this.nodes[0]) {
-      this.objects.push(rect);
+    if (this.nodes[0]) {
+      for (const node of this.nodes) {
+        node.insert(rect);
+      }
       return;
     }
 
-    // Split if necessary.
-    if (!this.nodes[0]) {
+    // If below the capacity and not subdivided yet, insert into this QuadTree node.
+    this.objects.push(rect);
+    if (this.objects.length >= this.MAX_ITEMS) {
       this.split();
-    }
-
-    // Add the rectangle to the subnodes.
-    for (const node of this.nodes) {
-      node.insert(rect);
     }
   }
 
-  // public insertPoint(rect: Rect): void {
-  //   if (this.nodes[0]) {
-  //     const index = this.getPointIndex(rect);
-
-  //     if (index !== -1) {
-  //       this.nodes[index].insert(rect);
-  //       return;
-  //     }
-  //   }
-
-  //   this.objects.push(rect);
-
-  //   if (this.objects.length > MAX_ITEMS && this.level < MAX_LEVELS) {
-  //     if (!this.nodes[0]) {
-  //       this.split();
-  //     }
-
-  //     let i = 0;
-  //     while (i < this.objects.length) {
-  //       const index = this.getIndex(this.objects[i]);
-  //       if (index !== -1) {
-  //         this.nodes[index].insert(this.objects.splice(i, 1)[0]);
-  //       } else {
-  //         i++;
-  //       }
-  //     }
-  //   }
-  // }
+  public getAt(point: Vector2): Rect[] {
+    return this.query({ x: point.x, y: point.y, width: EPS, height: EPS });
+  }
 
   public query(rangeRect: Rect): Rect[] {
     const itemsInRange: Rect[] = [];
@@ -174,7 +147,7 @@ export default class QuadTree {
     // Check objects in this QuadTree node.
     for (const rect of this.objects) {
       if (intersects(rect, searchRect)) {
-        return true;  // Found an intersecting rect, return true immediately.
+        return true; // Found an intersecting rect, return true immediately.
       }
     }
 
@@ -194,7 +167,10 @@ export default class QuadTree {
     return false;
   }
 
-  public raycast(ray: Ray, maxDistance: number = Infinity): { point: Vector2, hit: Rect } | null {
+  public raycast(
+    ray: Ray,
+    maxDistance: number = Infinity
+  ): { point: Vector2; hit: Rect } | null {
     // If the ray doesn't intersect the quadtree's bounds, return null.
     if (!intersectRayRectangle(ray, this.bounds)) {
       return null;
@@ -222,7 +198,7 @@ export default class QuadTree {
       }
     }
 
-    const inflation = 0.25;
+    const inflation = 0.17;
 
     // Check objects in this QuadTree node.
     for (const rect of this.objects) {
@@ -243,23 +219,4 @@ export default class QuadTree {
     return closestRect ? { point: closestHit!, hit: closestRect } : null;
   }
 
-  public draw(context: CanvasRenderingContext2D, cellSize: number): void {
-    // Draw the current bounds.
-    context.strokeStyle = 'blue';
-    context.strokeRect(this.bounds.x * cellSize, this.bounds.y * cellSize, this.bounds.width * cellSize, this.bounds.height * cellSize);
-
-    // Draw the stored objects within this quad.
-    // context.strokeStyle = 'white';
-    // for (const rect of this.objects) {
-    //   context.strokeRect(rect.x * cellSize, rect.y * cellSize, rect.width * cellSize, rect.height * cellSize);
-    // }
-
-    // Recursively draw the child nodes.
-    for (const node of this.nodes) {
-      if (node) {
-        node.draw(context, cellSize);
-      }
-    }
-  }
 }
-

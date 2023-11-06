@@ -7,7 +7,7 @@ import { inflateRect } from "./inflateRect";
 
 export default class QuadTree {
   private MAX_ITEMS = 8; // Adjust this as needed.
-  private MAX_LEVEL = 5;
+  private MAX_LEVEL = 8;
 
   private level: number;
   private bounds: Rect;
@@ -198,7 +198,7 @@ export default class QuadTree {
       }
     }
 
-    const inflation = 0.17;
+    const inflation = 0.22;
 
     // Check objects in this QuadTree node.
     for (const rect of this.objects) {

@@ -7,6 +7,7 @@ export default class SeededRandom {
   constructor(private seed: number) { }
 
   random() {
+
     // Update the seed
     this.seed = (a * this.seed + c) % m;
     // Return a float in [0, 1)

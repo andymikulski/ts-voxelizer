@@ -16,10 +16,9 @@ export default class SketchyContext {
     this.context = context;
   }
 
-  fillRect(x:number,y:number, width:number,height:number):void {
-    this.context.fillRect(x,y,width,height);
+  fillRect(x: number, y: number, width: number, height: number): void {
+    this.context.fillRect(x, y, width, height);
   }
-
 
   // Move to a new position without drawing a line
   moveTo(x: number, y: number): void {

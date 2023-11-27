@@ -27,9 +27,10 @@ container.appendChild(canvas);
 const ctx = canvas.getContext("2d")!;
 ctx.lineCap = 'round';
 
-const sketch = new SketchyContext(ctx, 2, true);
+const sketch = new SketchyContext(ctx, 2, false);
 
-const cellSize = 20;
+
+const cellSize = 32;
 const rows = Math.floor(canvas.height / cellSize);
 const cols = Math.floor(canvas.width / cellSize);
 
@@ -103,7 +104,7 @@ function renderVoxels(list: Rect[]): void {
 }
 
 export const obstacleManager = new ObstacleManager(cols, rows);
-for (let i = 0; i < 200; i++) {
+for (let i = 0; i < 50; i++) {
   obstacleManager.addObstacle({
     x: (seededRandom.random() * cols) | 0,
     y: (seededRandom.random() * rows) | 0,
@@ -112,10 +113,10 @@ for (let i = 0; i < 200; i++) {
   });
 }
 
-// const vox = new Voxelizer(0.2);
-// const fullSize = { x: 0, y: 0, width: cols, height: rows };
-// console.time("voxelize");
-// const voxels = vox.voxelize(fullSize, obstacleManager);
+const vox = new Voxelizer(0.2);
+const fullSize = { x: 0, y: 0, width: cols, height: rows };
+console.time("voxelize");
+const voxels = vox.voxelize(fullSize, obstacleManager);
 // console.timeEnd("voxelize");
 
 
@@ -124,7 +125,7 @@ const render = () => {
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height); //.clearRect(0, 0, 800, 800);
   renderGrid();
   // renderObstacles(obstacleManager);
-  // renderVoxels(voxels);
+  renderVoxels(voxels);
   // obstacleManager.draw(ctx, cellSize);
   // quadtree.draw(ctx, cellSize);
   // requestAnimationFrame(render);
@@ -133,10 +134,10 @@ const render = () => {
 render();
 let ms = new MarchingSquares(sketch, ctx, cols, rows, cellSize, (pt) => obstacleManager.obstacles.getAt(pt).length > 0);
 
-// setInterval(() => {
-//   render();
-//   ms.runAlgorithm();
-// }, 2000);
+setInterval(() => {
+  render();
+  ms.runAlgorithm();
+}, 2000);
 
 
 
